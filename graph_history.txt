@@ -1,0 +1,9 @@
+2025-02-04 15:43:35 - 5Y - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_5Y.png
+2025-02-04 15:44:06 - 1W - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1W.png
+2025-02-04 15:45:14 - 1M - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1M.png
+2025-02-04 15:46:07 - 1Y - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1Y.png
+2025-02-04 15:48:53 - 1W - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1W.png
+2025-02-04 15:50:54 - 1W - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1W.png
+2025-02-04 15:52:24 - 1M - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1M.png
+2025-02-04 15:52:45 - 1Y - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_1Y.png
+2025-02-04 15:53:05 - 5Y - https://raw.githubusercontent.com/hydena03/mineral-price-tracker/main/images/metal_and_rare_earth_prices_5Y.png

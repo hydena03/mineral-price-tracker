@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Firebase
+firebase.json
+.firebaserc
+mineralpricetracking-firebase-adminsdk-*.json
+
+# Environment
+.env
+venv/ 
