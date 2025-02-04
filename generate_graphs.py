@@ -21,8 +21,11 @@ plt.rcParams.update({
     'figure.constrained_layout.use': True
 })
 
-def get_date_range(period):
-    end_date = datetime.now()
+def get_date_range(period, base_date=None):
+    if base_date is None:
+        end_date = datetime.now()
+    else:
+        end_date = base_date
     
     if period == '1W':
         start_date = end_date - timedelta(days=7)
@@ -52,11 +55,12 @@ def get_metal_symbol(metal):
     }
     return symbols.get(metal)
 
-def plot_metal_prices(period):
-    print(f"\n{period} 기간 그래프 생성 중...")
+def plot_metal_prices(period, base_date=None):
+    date_str = base_date.strftime("%Y-%m-%d") if base_date else "current"
+    print(f"\n{period} 기간 그래프 생성 중... (기준일: {date_str})")
     
     # Calculate date range
-    start_date, end_date = get_date_range(period)
+    start_date, end_date = get_date_range(period, base_date)
     
     # List of metals and rare earth related symbols
     metals = [
@@ -140,18 +144,33 @@ def plot_metal_prices(period):
             ymin, ymax = ax.get_ylim()
             ax.set_ylim(ymin - (ymax-ymin)*0.05, ymax + (ymax-ymin)*0.05)
 
-    # Save plot
-    filename = f'metal_and_rare_earth_prices_{period}.png'
+    # Save plot with date in filename
+    if base_date:
+        date_suffix = base_date.strftime("_%Y%m%d")
+        filename = f'metal_and_rare_earth_prices_{period}{date_suffix}.png'
+    else:
+        filename = f'metal_and_rare_earth_prices_{period}.png'
+    
     save_path = os.path.join('images', filename)
     plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white', pad_inches=0.3)
     print(f"- {period} 그래프가 {save_path}에 저장되었습니다.")
     plt.close()
 
+def generate_historical_graphs():
+    # 2025년 1월 1일부터 2월 3일까지
+    start_date = datetime(2025, 1, 1)
+    end_date = datetime(2025, 2, 3)
+    current_date = start_date
+    
+    while current_date <= end_date:
+        print(f"\n=== {current_date.strftime('%Y년 %m월 %d일')} 그래프 생성 중 ===")
+        for period in ['1W', '1M', '1Y', '5Y']:
+            plot_metal_prices(period, current_date)
+        current_date += timedelta(days=1)
+
 def main():
-    print("광물 가격 그래프 생성을 시작합니다...")
-    periods = ['1W', '1M', '1Y', '5Y']
-    for period in periods:
-        plot_metal_prices(period)
+    print("과거 데이터 그래프 생성을 시작합니다...")
+    generate_historical_graphs()
     print("\n모든 그래프 생성이 완료되었습니다.")
 
 if __name__ == "__main__":
