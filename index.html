@@ -384,27 +384,38 @@
         document.querySelectorAll('.graph-container').forEach(container => {
             const tooltip = container.querySelector('.price-tooltip');
             const img = container.querySelector('img');
+            const period = container.getAttribute('onclick').match(/'(\w+)'/)[1];
 
-            container.addEventListener('mousemove', (e) => {
+            container.addEventListener('mousemove', async (e) => {
                 const rect = img.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
 
-                // 임시 데이터 (실제로는 API나 데이터베이스에서 가져와야 함)
-                const price = {
-                    'Copper': '$4.50/lb',
-                    'Gold': '$1,800/oz',
-                    'Silver': '$25/oz',
-                    'Platinum': '$1,000/oz',
-                    'Palladium': '$2,300/oz'
-                };
+                // 선택된 날짜 가져오기
+                const year = document.getElementById('yearSelect').value;
+                const month = document.getElementById('monthSelect').value;
+                const day = document.getElementById('daySelect').value;
+                const selectedDate = `${year}${month}${day}`;
 
-                tooltip.style.display = 'block';
-                tooltip.style.left = `${x + 10}px`;
-                tooltip.style.top = `${y + 10}px`;
-                tooltip.innerHTML = Object.entries(price)
-                    .map(([metal, price]) => `${metal}: ${price}`)
-                    .join('<br>');
+                try {
+                    // JSON 데이터 가져오기
+                    const response = await fetch(`data/metal_prices_${period}_${selectedDate}.json`);
+                    const data = await response.json();
+
+                    // 최신 가격 데이터 표시
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = `${x + 10}px`;
+                    tooltip.style.top = `${y + 10}px`;
+                    tooltip.innerHTML = Object.entries(data)
+                        .map(([metal, info]) => {
+                            const latestPrice = info.prices[info.prices.length - 1];
+                            return `${metal}: $${latestPrice.toFixed(2)} ${info.unit}`;
+                        })
+                        .join('<br>');
+                } catch (error) {
+                    console.error('데이터를 불러오는데 실패했습니다:', error);
+                    tooltip.style.display = 'none';
+                }
             });
 
             container.addEventListener('mouseleave', () => {
@@ -413,7 +424,7 @@
         });
 
         // 가격 테이블 표시
-        function showPriceTable(period) {
+        async function showPriceTable(period) {
             const modal = document.getElementById('priceModal');
             const tableContainer = document.getElementById('priceTableContainer');
             const titleElement = modal.querySelector('.table-title');
@@ -427,66 +438,47 @@
             };
             titleElement.textContent = titles[period];
 
-            // 임시 데이터 생성 (실제로는 API나 데이터베이스에서 가져와야 함)
-            const metals = ['Copper', 'Gold', 'Silver', 'Platinum', 'Palladium'];
-            let tableHTML = `
-                <table class="price-table">
-                    <thead>
-                        <tr>
-                            <th>날짜</th>
-                            ${metals.map(metal => `<th>${metal}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            try {
+                // 선택된 날짜 가져오기
+                const year = document.getElementById('yearSelect').value;
+                const month = document.getElementById('monthSelect').value;
+                const day = document.getElementById('daySelect').value;
+                const selectedDate = `${year}${month}${day}`;
 
-            // 기간에 따른 데이터 생성
-            const rows = generateSampleData(period, metals);
-            tableHTML += rows;
-            tableHTML += '</tbody></table>';
+                // JSON 데이터 가져오기
+                const response = await fetch(`data/metal_prices_${period}_${selectedDate}.json`);
+                const data = await response.json();
 
-            tableContainer.innerHTML = tableHTML;
-            modal.style.display = 'block';
-        }
+                // 테이블 헤더 생성
+                let tableHTML = `
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                ${Object.keys(data).map(metal => `<th>${metal} (${data[metal].unit})</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
 
-        function generateSampleData(period, metals) {
-            const rows = [];
-            const today = new Date();
-            let numDays;
+                // 데이터 행 생성
+                const dates = data[Object.keys(data)[0]].dates;
+                dates.forEach((date, index) => {
+                    tableHTML += `<tr>
+                        <td>${formatDate(new Date(date), period)}</td>
+                        ${Object.keys(data).map(metal => 
+                            `<td>$${data[metal].prices[index].toFixed(2)}</td>`
+                        ).join('')}
+                    </tr>`;
+                });
 
-            switch(period) {
-                case '1W':
-                    numDays = 7;
-                    break;
-                case '1M':
-                    numDays = 30;
-                    break;
-                case '1Y':
-                    numDays = 12; // 월별 데이터
-                    break;
-                case '5Y':
-                    numDays = 5; // 연도별 데이터
-                    break;
+                tableHTML += '</tbody></table>';
+                tableContainer.innerHTML = tableHTML;
+                modal.style.display = 'block';
+            } catch (error) {
+                console.error('데이터를 불러오는데 실패했습니다:', error);
+                tableContainer.innerHTML = '<p class="error-message">데이터를 불러오는데 실패했습니다.</p>';
             }
-
-            for (let i = 0; i < numDays; i++) {
-                let date;
-                if (period === '1Y') {
-                    date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                } else if (period === '5Y') {
-                    date = new Date(today.getFullYear() - i, 0, 1);
-                } else {
-                    date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-                }
-
-                const row = `<tr>
-                    <td>${formatDate(date, period)}</td>
-                    ${metals.map(metal => `<td>$${(Math.random() * 1000).toFixed(2)}</td>`).join('')}
-                </tr>`;
-                rows.push(row);
-            }
-
-            return rows.join('');
         }
 
         function formatDate(date, period) {

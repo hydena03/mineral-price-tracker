@@ -6,10 +6,15 @@ import matplotlib.font_manager as fm
 import numpy as np
 import seaborn as sns
 import os
+import json
 
 # 이미지 저장 디렉토리 생성
 if not os.path.exists('images'):
     os.makedirs('images')
+
+# 데이터 저장 디렉토리 생성
+if not os.path.exists('data'):
+    os.makedirs('data')
 
 # Graph style settings
 plt.style.use('default')
@@ -55,6 +60,25 @@ def get_metal_symbol(metal):
     }
     return symbols.get(metal)
 
+def save_price_data(data, period, base_date):
+    """가격 데이터를 JSON 파일로 저장"""
+    date_str = base_date.strftime("%Y%m%d") if base_date else "current"
+    filename = f'data/metal_prices_{period}_{date_str}.json'
+    
+    # DataFrame을 JSON 형식으로 변환
+    json_data = {}
+    for metal in data.columns:
+        json_data[metal] = {
+            'dates': data.index.strftime('%Y-%m-%d').tolist(),
+            'prices': data[metal].tolist(),
+            'unit': 'USD/oz' if metal in ['Gold', 'Silver', 'Platinum', 'Palladium'] else 'USD/lb' if metal in ['Copper', 'Aluminium'] else 'USD'
+        }
+    
+    with open(filename, 'w') as f:
+        json.dump(json_data, f, indent=2)
+    
+    print(f"- 가격 데이터가 {filename}에 저장되었습니다.")
+
 def plot_metal_prices(period, base_date=None):
     date_str = base_date.strftime("%Y-%m-%d") if base_date else "current"
     print(f"\n{period} 기간 그래프 생성 중... (기준일: {date_str})")
@@ -87,8 +111,9 @@ def plot_metal_prices(period, base_date=None):
         print("데이터를 가져오는데 실패했습니다.")
         return
 
-    # Create DataFrame
+    # Create DataFrame and save to JSON
     df = pd.DataFrame(data)
+    save_price_data(df, period, base_date)
 
     # 그래프 크기와 간격 조정
     fig = plt.figure(figsize=(25, 25))
@@ -159,7 +184,7 @@ def plot_metal_prices(period, base_date=None):
 def generate_historical_graphs():
     # 2025년 1월 1일부터 2월 3일까지
     start_date = datetime(2025, 1, 1)
-    end_date = datetime(2025, 2, 3)
+    end_date = datetime(2025, 2, 4)
     current_date = start_date
     
     while current_date <= end_date:
