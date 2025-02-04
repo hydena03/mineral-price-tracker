@@ -31,6 +31,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 0;  /* grid로 간격 조절하므로 제거 */
             transition: transform 0.2s;  /* 호버 효과 */
+            position: relative;  /* 추가: 상대 위치 설정 */
         }
         .graph-container:hover {
             transform: translateY(-5px);
@@ -44,9 +45,14 @@
         }
         .timestamp {
             color: #666;
-            font-size: 1em;  /* 글자 크기 증가 */
-            margin-top: 15px;
-            text-align: right;
+            font-size: 0.9em;
+            position: absolute;  /* 변경: 절대 위치 설정 */
+            top: 80px;  /* 변경: 상단에서의 거리 */
+            left: 50px;  /* 변경: 왼쪽에서의 거리 */
+            background-color: rgba(255, 255, 255, 0.9);  /* 추가: 반투명 배경 */
+            padding: 5px 10px;  /* 추가: 내부 여백 */
+            border-radius: 5px;  /* 추가: 모서리 둥글게 */
+            z-index: 1;  /* 추가: 그래프 위에 표시 */
         }
         .graph-title {
             font-size: 1.4em;  /* 제목 크기 증가 */
@@ -62,6 +68,9 @@
             body {
                 padding: 20px;
             }
+            .timestamp {
+                left: 30px;  /* 모바일에서는 왼쪽 여백 줄임 */
+            }
         }
     </style>
 </head>
@@ -70,23 +79,23 @@
     <div class="graphs-grid">
         <div class="graph-container">
             <div class="graph-title">1주일 광물 가격 그래프</div>
+            <p class="timestamp">생성날짜: <span id="time1W"></span> (SEOUL)</p>
             <img src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
-            <p class="timestamp">마지막 업데이트: <span id="time1W"></span></p>
         </div>
         <div class="graph-container">
             <div class="graph-title">1개월 광물 가격 그래프</div>
+            <p class="timestamp">생성날짜: <span id="time1M"></span> (SEOUL)</p>
             <img src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
-            <p class="timestamp">마지막 업데이트: <span id="time1M"></span></p>
         </div>
         <div class="graph-container">
             <div class="graph-title">1년 광물 가격 그래프</div>
+            <p class="timestamp">생성날짜: <span id="time1Y"></span> (SEOUL)</p>
             <img src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
-            <p class="timestamp">마지막 업데이트: <span id="time1Y"></span></p>
         </div>
         <div class="graph-container">
             <div class="graph-title">5년 광물 가격 그래프</div>
+            <p class="timestamp">생성날짜: <span id="time5Y"></span> (SEOUL)</p>
             <img src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
-            <p class="timestamp">마지막 업데이트: <span id="time5Y"></span></p>
         </div>
     </div>
 
@@ -107,7 +116,7 @@
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
-                        });
+                        }).replace(/\//g, '-');  // 슬래시를 하이픈으로 변경
                         document.getElementById(`time${period}`).textContent = formattedDate;
                     }
                 } catch (error) {
