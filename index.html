@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>광물 가격 트래커</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .graph-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .graph-title {
+            font-size: 1.2em;
+            color: #444;
+            margin-bottom: 10px;
+        }
+        .graph-image {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>광물 가격 트래커</h1>
+    <div id="graphs">
+        <!-- 여기에 Python 스크립트가 그래프 URL들을 추가할 것입니다 -->
+    </div>
+
+    <script>
+        // URL 목록을 읽어와서 그래프를 표시하는 함수
+        async function loadGraphs() {
+            try {
+                const response = await fetch('mineral_prices_urls.txt');
+                const text = await response.text();
+                const urls = text.split('\n').reverse(); // 최신 순으로 정렬
+
+                const graphsDiv = document.getElementById('graphs');
+                urls.forEach(url => {
+                    if (url.trim()) {
+                        const [timestamp, period, imageUrl] = url.split(' - ');
+                        const container = document.createElement('div');
+                        container.className = 'graph-container';
+                        container.innerHTML = `
+                            <div class="graph-title">광물 가격 변화 (${period})</div>
+                            <img class="graph-image" src="${imageUrl}" alt="광물 가격 그래프">
+                            <div class="timestamp">업데이트: ${timestamp}</div>
+                        `;
+                        graphsDiv.appendChild(container);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading graphs:', error);
+            }
+        }
+
+        // 페이지 로드 시 그래프 표시
+        loadGraphs();
+    </script>
+</body>
+</html> 
