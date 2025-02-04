@@ -7,31 +7,31 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            max-width: 1800px;  /* 최대 너비 증가 */
+            max-width: 2000px;  /* 최대 너비 증가 */
             margin: 0 auto;
-            padding: 40px;  /* 여백 증가 */
+            padding: 40px;
             background-color: #f5f5f5;
         }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 40px;  /* 여백 증가 */
-            font-size: 2.5em;  /* 제목 크기 증가 */
+            margin-bottom: 40px;
+            font-size: 2.5em;
         }
         .graphs-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);  /* 2열 그리드 */
-            gap: 30px;  /* 그래프 간 간격 */
+            display: flex;
+            flex-direction: column;  /* 세로 방향으로 배치 */
+            gap: 40px;  /* 그래프 간 간격 증가 */
             margin: 0 auto;
         }
         .graph-container {
             background: white;
-            padding: 30px;  /* 내부 여백 증가 */
+            padding: 40px;  /* 내부 여백 증가 */
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 0;  /* grid로 간격 조절하므로 제거 */
-            transition: transform 0.2s;  /* 호버 효과 */
-            position: relative;  /* 추가: 상대 위치 설정 */
+            transition: transform 0.2s;
+            position: relative;
+            width: 100%;  /* 전체 너비 사용 */
         }
         .graph-container:hover {
             transform: translateY(-5px);
@@ -41,35 +41,32 @@
             width: 100%;
             height: auto;
             display: block;
-            border-radius: 8px;  /* 이미지 모서리 둥글게 */
+            border-radius: 8px;
         }
         .timestamp {
             color: #666;
             font-size: 0.9em;
-            position: absolute;  /* 변경: 절대 위치 설정 */
-            top: 80px;  /* 변경: 상단에서의 거리 */
-            left: 50px;  /* 변경: 왼쪽에서의 거리 */
-            background-color: rgba(255, 255, 255, 0.9);  /* 추가: 반투명 배경 */
-            padding: 5px 10px;  /* 추가: 내부 여백 */
-            border-radius: 5px;  /* 추가: 모서리 둥글게 */
-            z-index: 1;  /* 추가: 그래프 위에 표시 */
+            position: absolute;
+            top: 100px;  /* 위치 조정 */
+            left: 60px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1;
         }
         .graph-title {
-            font-size: 1.4em;  /* 제목 크기 증가 */
+            font-size: 1.6em;  /* 제목 크기 증가 */
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 30px;  /* 여백 증가 */
             font-weight: bold;
-            text-align: center;  /* 제목 중앙 정렬 */
+            text-align: center;
         }
         @media (max-width: 1200px) {
-            .graphs-grid {
-                grid-template-columns: 1fr;  /* 모바일에서는 1열로 */
-            }
             body {
                 padding: 20px;
             }
             .timestamp {
-                left: 30px;  /* 모바일에서는 왼쪽 여백 줄임 */
+                left: 30px;
             }
         }
     </style>
@@ -100,7 +97,6 @@
     </div>
 
     <script>
-        // 이미지의 마지막 수정 시간을 가져와서 표시
         async function updateTimestamps() {
             const periods = ['1W', '1M', '1Y', '5Y'];
             for (const period of periods) {
@@ -116,7 +112,7 @@
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
-                        }).replace(/\//g, '-');  // 슬래시를 하이픈으로 변경
+                        }).replace(/\//g, '-');
                         document.getElementById(`time${period}`).textContent = formattedDate;
                     }
                 } catch (error) {
@@ -125,7 +121,6 @@
             }
         }
 
-        // 페이지 로드 시 타임스탬프 업데이트
         updateTimestamps();
     </script>
 </body>
