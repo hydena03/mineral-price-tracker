@@ -53,6 +53,8 @@ def get_metal_symbol(metal):
     return symbols.get(metal)
 
 def plot_metal_prices(period):
+    print(f"\n{period} 기간 그래프 생성 중...")
+    
     # Calculate date range
     start_date, end_date = get_date_range(period)
     
@@ -72,12 +74,13 @@ def plot_metal_prices(period):
                 df = ticker.history(start=start_date, end=end_date)
                 if not df.empty:
                     data[metal] = df['Close']
+                print(f"- {metal} 데이터 가져오기 성공")
             except Exception as e:
-                print(f"Failed to fetch data for {metal}: {e}")
+                print(f"- {metal} 데이터 가져오기 실패: {e}")
                 continue
 
     if not data:
-        print("Failed to fetch any data.")
+        print("데이터를 가져오는데 실패했습니다.")
         return
 
     # Create DataFrame
@@ -141,14 +144,15 @@ def plot_metal_prices(period):
     filename = f'metal_and_rare_earth_prices_{period}.png'
     save_path = os.path.join('images', filename)
     plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white', pad_inches=0.3)
+    print(f"- {period} 그래프가 {save_path}에 저장되었습니다.")
     plt.close()
 
 def main():
+    print("광물 가격 그래프 생성을 시작합니다...")
     periods = ['1W', '1M', '1Y', '5Y']
     for period in periods:
-        print(f"Generating graph for {period}...")
         plot_metal_prices(period)
-        print(f"Graph for {period} generated successfully.")
+    print("\n모든 그래프 생성이 완료되었습니다.")
 
 if __name__ == "__main__":
     main() 
