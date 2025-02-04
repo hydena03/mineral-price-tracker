@@ -38,29 +38,69 @@
             color: #666;
             font-size: 0.9em;
             margin-top: 10px;
+            text-align: right;
+        }
+        .graph-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>광물 가격 트래커</h1>
     <div id="graphs">
-        <!-- 최신 그래프 표시 -->
         <div class="graph-container">
+            <div class="graph-title">1주일 광물 가격 그래프</div>
             <img src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
-            <p class="timestamp">1주일 데이터</p>
+            <p class="timestamp">마지막 업데이트: <span id="time1W"></span></p>
         </div>
         <div class="graph-container">
+            <div class="graph-title">1개월 광물 가격 그래프</div>
             <img src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
-            <p class="timestamp">1개월 데이터</p>
+            <p class="timestamp">마지막 업데이트: <span id="time1M"></span></p>
         </div>
         <div class="graph-container">
+            <div class="graph-title">1년 광물 가격 그래프</div>
             <img src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
-            <p class="timestamp">1년 데이터</p>
+            <p class="timestamp">마지막 업데이트: <span id="time1Y"></span></p>
         </div>
         <div class="graph-container">
+            <div class="graph-title">5년 광물 가격 그래프</div>
             <img src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
-            <p class="timestamp">5년 데이터</p>
+            <p class="timestamp">마지막 업데이트: <span id="time5Y"></span></p>
         </div>
     </div>
+
+    <script>
+        // 이미지의 마지막 수정 시간을 가져와서 표시
+        async function updateTimestamps() {
+            const periods = ['1W', '1M', '1Y', '5Y'];
+            for (const period of periods) {
+                try {
+                    const response = await fetch(`images/metal_and_rare_earth_prices_${period}.png`);
+                    const lastModified = response.headers.get('last-modified');
+                    if (lastModified) {
+                        const date = new Date(lastModified);
+                        const formattedDate = date.toLocaleString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        });
+                        document.getElementById(`time${period}`).textContent = formattedDate;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching timestamp for ${period}:`, error);
+                }
+            }
+        }
+
+        // 페이지 로드 시 타임스탬프 업데이트
+        updateTimestamps();
+    </script>
 </body>
 </html> 
