@@ -12,11 +12,46 @@
             padding: 40px;
             background-color: #f5f5f5;
         }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 40px;
             font-size: 2.5em;
+            margin: 0;
+        }
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .date-selector select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .date-selector button {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .date-selector button:hover {
+            background-color: #0056b3;
         }
         .graphs-grid {
             display: flex;
@@ -105,6 +140,10 @@
             body {
                 padding: 20px;
             }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
             .timestamp {
                 left: 30px;
             }
@@ -112,27 +151,35 @@
     </style>
 </head>
 <body>
-    <h1>광물 가격 트래커</h1>
+    <div class="header">
+        <h1>광물 가격 트래커</h1>
+        <div class="date-selector">
+            <select id="yearSelect"></select>
+            <select id="monthSelect"></select>
+            <select id="daySelect"></select>
+            <button onclick="loadGraphsByDate()">그래프 보기</button>
+        </div>
+    </div>
     <div class="graphs-grid">
         <div class="graph-container">
             <div class="graph-title">1주일 광물 가격 그래프</div>
             <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1W.png')">생성날짜: <span id="time1W"></span> (SEOUL)</p>
-            <img src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
+            <img id="graph1W" src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
         </div>
         <div class="graph-container">
             <div class="graph-title">1개월 광물 가격 그래프</div>
             <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1M.png')">생성날짜: <span id="time1M"></span> (SEOUL)</p>
-            <img src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
+            <img id="graph1M" src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
         </div>
         <div class="graph-container">
             <div class="graph-title">1년 광물 가격 그래프</div>
             <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1Y.png')">생성날짜: <span id="time1Y"></span> (SEOUL)</p>
-            <img src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
+            <img id="graph1Y" src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
         </div>
         <div class="graph-container">
             <div class="graph-title">5년 광물 가격 그래프</div>
             <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_5Y.png')">생성날짜: <span id="time5Y"></span> (SEOUL)</p>
-            <img src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
+            <img id="graph5Y" src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
         </div>
     </div>
 
@@ -145,30 +192,104 @@
     </div>
 
     <script>
-        // 타임스탬프 업데이트
-        async function updateTimestamps() {
-            const periods = ['1W', '1M', '1Y', '5Y'];
-            for (const period of periods) {
-                try {
-                    const response = await fetch(`images/metal_and_rare_earth_prices_${period}.png`);
-                    const lastModified = response.headers.get('last-modified');
-                    if (lastModified) {
-                        const date = new Date(lastModified);
-                        const formattedDate = date.toLocaleString('ko-KR', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                        }).replace(/\//g, '-');
-                        document.getElementById(`time${period}`).textContent = formattedDate;
-                    }
-                } catch (error) {
-                    console.error(`Error fetching timestamp for ${period}:`, error);
-                }
+        // 날짜 선택기 초기화
+        function initializeDateSelector() {
+            const yearSelect = document.getElementById('yearSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            const daySelect = document.getElementById('daySelect');
+            
+            // 현재 날짜
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
+            // 연도 옵션 (현재 연도부터 2년 전까지)
+            for (let year = currentYear; year >= currentYear - 2; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year + '년';
+                yearSelect.appendChild(option);
+            }
+            
+            // 월 옵션
+            for (let month = 1; month <= 12; month++) {
+                const option = document.createElement('option');
+                option.value = month.toString().padStart(2, '0');
+                option.textContent = month + '월';
+                monthSelect.appendChild(option);
+            }
+            
+            // 현재 월 선택
+            monthSelect.value = (now.getMonth() + 1).toString().padStart(2, '0');
+            
+            // 일 옵션 업데이트
+            updateDays();
+            
+            // 현재 일 선택
+            daySelect.value = now.getDate().toString().padStart(2, '0');
+            
+            // 월이 변경될 때 일 옵션 업데이트
+            monthSelect.addEventListener('change', updateDays);
+            yearSelect.addEventListener('change', updateDays);
+        }
+        
+        // 일 옵션 업데이트
+        function updateDays() {
+            const yearSelect = document.getElementById('yearSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            const daySelect = document.getElementById('daySelect');
+            
+            const year = parseInt(yearSelect.value);
+            const month = parseInt(monthSelect.value);
+            
+            // 해당 월의 마지막 날짜 계산
+            const lastDay = new Date(year, month, 0).getDate();
+            
+            // 현재 선택된 일
+            const currentDay = daySelect.value;
+            
+            // 일 옵션 초기화
+            daySelect.innerHTML = '';
+            
+            // 일 옵션 추가
+            for (let day = 1; day <= lastDay; day++) {
+                const option = document.createElement('option');
+                option.value = day.toString().padStart(2, '0');
+                option.textContent = day + '일';
+                daySelect.appendChild(option);
+            }
+            
+            // 가능한 경우 이전 선택 유지
+            if (currentDay <= lastDay) {
+                daySelect.value = currentDay;
             }
         }
+        
+        // 선택한 날짜의 그래프 로드
+        function loadGraphsByDate() {
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const day = document.getElementById('daySelect').value;
+            
+            const selectedDate = `${year}-${month}-${day}`;
+            const periods = ['1W', '1M', '1Y', '5Y'];
+            
+            periods.forEach(period => {
+                const imgElement = document.getElementById(`graph${period}`);
+                const timestampElement = document.getElementById(`time${period}`);
+                
+                // 이미지 URL 업데이트
+                imgElement.src = `images/metal_and_rare_earth_prices_${period}.png?date=${selectedDate}`;
+                
+                // 타임스탬프 업데이트
+                timestampElement.textContent = `${selectedDate} 00:00`;
+            });
+        }
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDateSelector();
+            loadGraphsByDate();
+        });
 
         // 모달 열기
         function openModal(imageSrc) {
@@ -196,8 +317,6 @@
                 closeModal();
             }
         });
-
-        updateTimestamps();
     </script>
 </body>
 </html> 
