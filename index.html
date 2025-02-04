@@ -67,6 +67,7 @@
             transition: transform 0.2s;
             position: relative;
             width: 100%;  /* 전체 너비 사용 */
+            cursor: pointer;
         }
         .graph-container:hover {
             transform: translateY(-5px);
@@ -103,6 +104,17 @@
             font-weight: bold;
             text-align: center;
         }
+        .price-tooltip {
+            display: none;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 100;
+        }
         /* 모달 스타일 */
         .modal {
             display: none;
@@ -113,14 +125,16 @@
             height: 100%;
             background-color: rgba(0,0,0,0.8);
             z-index: 1000;
+            overflow-y: auto;
         }
         .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 90%;
-            max-height: 90%;
+            position: relative;
+            background-color: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 8px;
         }
         .modal-content img {
             width: 100%;
@@ -129,12 +143,35 @@
         }
         .close-button {
             position: absolute;
-            top: 20px;
+            top: 10px;
             right: 20px;
-            color: white;
+            color: #333;
             font-size: 30px;
             cursor: pointer;
             z-index: 1001;
+        }
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .price-table th, .price-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .price-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .price-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .table-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
         }
         @media (max-width: 1200px) {
             body {
@@ -184,33 +221,38 @@
         선택한 날짜의 그래프가 아직 생성되지 않았습니다.
     </div>
     <div class="graphs-grid">
-        <div class="graph-container">
+        <div class="graph-container" onclick="showPriceTable('1W')">
             <div class="graph-title">1주일 광물 가격 그래프</div>
-            <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1W.png')">생성날짜: <span id="time1W"></span> (SEOUL)</p>
+            <p class="timestamp">생성날짜: <span id="time1W"></span> (SEOUL)</p>
             <img id="graph1W" src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
+            <div class="price-tooltip"></div>
         </div>
-        <div class="graph-container">
+        <div class="graph-container" onclick="showPriceTable('1M')">
             <div class="graph-title">1개월 광물 가격 그래프</div>
-            <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1M.png')">생성날짜: <span id="time1M"></span> (SEOUL)</p>
+            <p class="timestamp">생성날짜: <span id="time1M"></span> (SEOUL)</p>
             <img id="graph1M" src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
+            <div class="price-tooltip"></div>
         </div>
-        <div class="graph-container">
+        <div class="graph-container" onclick="showPriceTable('1Y')">
             <div class="graph-title">1년 광물 가격 그래프</div>
-            <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_1Y.png')">생성날짜: <span id="time1Y"></span> (SEOUL)</p>
+            <p class="timestamp">생성날짜: <span id="time1Y"></span> (SEOUL)</p>
             <img id="graph1Y" src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
+            <div class="price-tooltip"></div>
         </div>
-        <div class="graph-container">
+        <div class="graph-container" onclick="showPriceTable('5Y')">
             <div class="graph-title">5년 광물 가격 그래프</div>
-            <p class="timestamp" onclick="openModal('images/metal_and_rare_earth_prices_5Y.png')">생성날짜: <span id="time5Y"></span> (SEOUL)</p>
+            <p class="timestamp">생성날짜: <span id="time5Y"></span> (SEOUL)</p>
             <img id="graph5Y" src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
+            <div class="price-tooltip"></div>
         </div>
     </div>
 
-    <!-- 모달 -->
-    <div id="imageModal" class="modal">
-        <span class="close-button" onclick="closeModal()">&times;</span>
+    <!-- 가격 데이터 모달 -->
+    <div id="priceModal" class="modal">
         <div class="modal-content">
-            <img id="modalImage" src="" alt="확대된 그래프">
+            <span class="close-button" onclick="closePriceModal()">&times;</span>
+            <h2 class="table-title"></h2>
+            <div id="priceTableContainer"></div>
         </div>
     </div>
 
@@ -338,30 +380,140 @@
             loadGraphsByDate();
         });
 
-        // 모달 열기
-        function openModal(imageSrc) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            modal.style.display = "block";
-            modalImg.src = imageSrc;
+        // 호버 이벤트 처리
+        document.querySelectorAll('.graph-container').forEach(container => {
+            const tooltip = container.querySelector('.price-tooltip');
+            const img = container.querySelector('img');
+
+            container.addEventListener('mousemove', (e) => {
+                const rect = img.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // 임시 데이터 (실제로는 API나 데이터베이스에서 가져와야 함)
+                const price = {
+                    'Copper': '$4.50/lb',
+                    'Gold': '$1,800/oz',
+                    'Silver': '$25/oz',
+                    'Platinum': '$1,000/oz',
+                    'Palladium': '$2,300/oz'
+                };
+
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${x + 10}px`;
+                tooltip.style.top = `${y + 10}px`;
+                tooltip.innerHTML = Object.entries(price)
+                    .map(([metal, price]) => `${metal}: ${price}`)
+                    .join('<br>');
+            });
+
+            container.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+
+        // 가격 테이블 표시
+        function showPriceTable(period) {
+            const modal = document.getElementById('priceModal');
+            const tableContainer = document.getElementById('priceTableContainer');
+            const titleElement = modal.querySelector('.table-title');
+
+            // 기간에 따른 타이틀 설정
+            const titles = {
+                '1W': '주간 광물 가격 데이터',
+                '1M': '월간 광물 가격 데이터',
+                '1Y': '연간 광물 가격 데이터',
+                '5Y': '5년 광물 가격 데이터'
+            };
+            titleElement.textContent = titles[period];
+
+            // 임시 데이터 생성 (실제로는 API나 데이터베이스에서 가져와야 함)
+            const metals = ['Copper', 'Gold', 'Silver', 'Platinum', 'Palladium'];
+            let tableHTML = `
+                <table class="price-table">
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            ${metals.map(metal => `<th>${metal}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // 기간에 따른 데이터 생성
+            const rows = generateSampleData(period, metals);
+            tableHTML += rows;
+            tableHTML += '</tbody></table>';
+
+            tableContainer.innerHTML = tableHTML;
+            modal.style.display = 'block';
         }
 
-        // 모달 닫기
-        function closeModal() {
-            document.getElementById('imageModal').style.display = "none";
+        function generateSampleData(period, metals) {
+            const rows = [];
+            const today = new Date();
+            let numDays;
+
+            switch(period) {
+                case '1W':
+                    numDays = 7;
+                    break;
+                case '1M':
+                    numDays = 30;
+                    break;
+                case '1Y':
+                    numDays = 12; // 월별 데이터
+                    break;
+                case '5Y':
+                    numDays = 5; // 연도별 데이터
+                    break;
+            }
+
+            for (let i = 0; i < numDays; i++) {
+                let date;
+                if (period === '1Y') {
+                    date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                } else if (period === '5Y') {
+                    date = new Date(today.getFullYear() - i, 0, 1);
+                } else {
+                    date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+                }
+
+                const row = `<tr>
+                    <td>${formatDate(date, period)}</td>
+                    ${metals.map(metal => `<td>$${(Math.random() * 1000).toFixed(2)}</td>`).join('')}
+                </tr>`;
+                rows.push(row);
+            }
+
+            return rows.join('');
+        }
+
+        function formatDate(date, period) {
+            if (period === '1Y') {
+                return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' });
+            } else if (period === '5Y') {
+                return date.toLocaleDateString('ko-KR', { year: 'numeric' });
+            } else {
+                return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            }
+        }
+
+        function closePriceModal() {
+            document.getElementById('priceModal').style.display = 'none';
         }
 
         // ESC 키로 모달 닫기
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape") {
-                closeModal();
+                closePriceModal();
             }
         });
 
         // 모달 외부 클릭시 닫기
-        document.getElementById('imageModal').addEventListener('click', function(event) {
+        document.getElementById('priceModal').addEventListener('click', function(event) {
             if (event.target === this) {
-                closeModal();
+                closePriceModal();
             }
         });
     </script>
