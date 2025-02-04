@@ -289,20 +289,20 @@
         
         // 선택한 날짜의 그래프 로드
         function loadGraphsByDate() {
-            const year = document.getElementById('yearSelect').value;
-            const month = document.getElementById('monthSelect').value;
-            const day = document.getElementById('daySelect').value;
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const day = parseInt(document.getElementById('daySelect').value);
             
-            const selectedDate = `${year}-${month}-${day}`;
+            const selectedDateTime = new Date(year, month - 1, day, 0, 0, 0);
             const currentDate = new Date();
-            const selectedDateTime = new Date(year, month - 1, day);
+            currentDate.setHours(0, 0, 0, 0);  // 시간을 00:00:00으로 설정
             
             // 선택한 날짜가 현재 날짜보다 미래인 경우
-            if (selectedDateTime > currentDate) {
+            if (selectedDateTime.getTime() > currentDate.getTime()) {
                 document.querySelector('.graphs-grid').style.display = 'none';
                 document.getElementById('errorMessage').style.display = 'block';
                 document.getElementById('errorMessage').textContent = 
-                    '선택한 날짜의 그래프가 아직 생성되지 않았습니다. 현재 날짜 이전의 날짜를 선택해주세요.';
+                    `선택한 날짜(${year}년 ${month}월 ${day}일)의 그래프가 아직 생성되지 않았습니다. 현재 날짜 이전의 날짜를 선택해주세요.`;
                 return;
             }
 
@@ -310,6 +310,7 @@
             document.querySelector('.graphs-grid').style.display = 'flex';
             document.getElementById('errorMessage').style.display = 'none';
             
+            const selectedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             const periods = ['1W', '1M', '1Y', '5Y'];
             
             periods.forEach(period => {
