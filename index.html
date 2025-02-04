@@ -54,7 +54,7 @@
             background-color: #0056b3;
         }
         .graphs-grid {
-            display: flex;
+            display: none;  /* 초기에는 숨김 */
             flex-direction: column;  /* 세로 방향으로 배치 */
             gap: 40px;  /* 그래프 간 간격 증가 */
             margin: 0 auto;
@@ -148,6 +148,26 @@
                 left: 30px;
             }
         }
+        .no-data-message {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            color: #666;
+            font-size: 1.2em;
+        }
+        .error-message {
+            display: none;  /* 초기에는 숨김 */
+            text-align: center;
+            padding: 30px;
+            background: #fff3f3;
+            border-radius: 8px;
+            color: #d63031;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
     </style>
 </head>
 <body>
@@ -159,6 +179,9 @@
             <select id="daySelect"></select>
             <button onclick="loadGraphsByDate()">그래프 보기</button>
         </div>
+    </div>
+    <div id="errorMessage" class="error-message">
+        선택한 날짜의 그래프가 아직 생성되지 않았습니다.
     </div>
     <div class="graphs-grid">
         <div class="graph-container">
@@ -271,6 +294,22 @@
             const day = document.getElementById('daySelect').value;
             
             const selectedDate = `${year}-${month}-${day}`;
+            const currentDate = new Date();
+            const selectedDateTime = new Date(year, month - 1, day);
+            
+            // 선택한 날짜가 현재 날짜보다 미래인 경우
+            if (selectedDateTime > currentDate) {
+                document.querySelector('.graphs-grid').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 
+                    '선택한 날짜의 그래프가 아직 생성되지 않았습니다. 현재 날짜 이전의 날짜를 선택해주세요.';
+                return;
+            }
+
+            // 그래프 표시
+            document.querySelector('.graphs-grid').style.display = 'flex';
+            document.getElementById('errorMessage').style.display = 'none';
+            
             const periods = ['1W', '1M', '1Y', '5Y'];
             
             periods.forEach(period => {
@@ -288,6 +327,13 @@
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             initializeDateSelector();
+            
+            // 현재 날짜로 초기 로드
+            const now = new Date();
+            document.getElementById('yearSelect').value = now.getFullYear();
+            document.getElementById('monthSelect').value = (now.getMonth() + 1).toString().padStart(2, '0');
+            document.getElementById('daySelect').value = now.getDate().toString().padStart(2, '0');
+            
             loadGraphsByDate();
         });
 
