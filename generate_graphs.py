@@ -131,20 +131,13 @@ def plot_metal_prices(period, base_date=None):
             # Get unit for hover text
             unit = 'USD/oz' if metal in ['Gold', 'Silver', 'Platinum', 'Palladium'] else 'USD/lb' if metal in ['Copper', 'Aluminium'] else 'USD'
             
-            # Create hover text
-            hover_text = [
-                f'날짜: {date.strftime("%Y-%m-%d")}<br>' +
-                f'가격: ${price:.2f} {unit}'
-                for date, price in zip(df.index, df[metal])
-            ]
-            
             fig.add_trace(
                 go.Scatter(
                     x=df.index,
                     y=df[metal],
                     name=metal,
-                    hovertext=hover_text,
-                    hoverinfo='text',
+                    hovertemplate='날짜: %{x|%Y-%m-%d}<br>' +
+                                f'가격: $%{{y:.2f}} {unit}<extra></extra>',
                     line=dict(width=2)
                 ),
                 row=row,
