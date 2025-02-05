@@ -224,25 +224,25 @@
         <div class="graph-container" onclick="showPriceTable('1W')">
             <div class="graph-title">1주일 광물 가격 그래프</div>
             <p class="timestamp">생성날짜: <span id="time1W"></span> (SEOUL)</p>
-            <img id="graph1W" src="images/metal_and_rare_earth_prices_1W.png" alt="1주일 광물 가격 그래프">
+            <iframe id="graph1W" style="width: 100%; height: 600px; border: none;" frameborder="0"></iframe>
             <div class="price-tooltip"></div>
         </div>
         <div class="graph-container" onclick="showPriceTable('1M')">
             <div class="graph-title">1개월 광물 가격 그래프</div>
             <p class="timestamp">생성날짜: <span id="time1M"></span> (SEOUL)</p>
-            <img id="graph1M" src="images/metal_and_rare_earth_prices_1M.png" alt="1개월 광물 가격 그래프">
+            <iframe id="graph1M" style="width: 100%; height: 600px; border: none;" frameborder="0"></iframe>
             <div class="price-tooltip"></div>
         </div>
         <div class="graph-container" onclick="showPriceTable('1Y')">
             <div class="graph-title">1년 광물 가격 그래프</div>
             <p class="timestamp">생성날짜: <span id="time1Y"></span> (SEOUL)</p>
-            <img id="graph1Y" src="images/metal_and_rare_earth_prices_1Y.png" alt="1년 광물 가격 그래프">
+            <iframe id="graph1Y" style="width: 100%; height: 600px; border: none;" frameborder="0"></iframe>
             <div class="price-tooltip"></div>
         </div>
         <div class="graph-container" onclick="showPriceTable('5Y')">
             <div class="graph-title">5년 광물 가격 그래프</div>
             <p class="timestamp">생성날짜: <span id="time5Y"></span> (SEOUL)</p>
-            <img id="graph5Y" src="images/metal_and_rare_earth_prices_5Y.png" alt="5년 광물 가격 그래프">
+            <iframe id="graph5Y" style="width: 100%; height: 600px; border: none;" frameborder="0"></iframe>
             <div class="price-tooltip"></div>
         </div>
     </div>
@@ -352,18 +352,18 @@
             document.querySelector('.graphs-grid').style.display = 'flex';
             document.getElementById('errorMessage').style.display = 'none';
             
-            const selectedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            const selectedDate = `${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}`;
             const periods = ['1W', '1M', '1Y', '5Y'];
             
             periods.forEach(period => {
-                const imgElement = document.getElementById(`graph${period}`);
+                const iframeElement = document.getElementById(`graph${period}`);
                 const timestampElement = document.getElementById(`time${period}`);
                 
-                // 이미지 URL 업데이트
-                imgElement.src = `images/metal_and_rare_earth_prices_${period}.png?date=${selectedDate}`;
+                // iframe src 업데이트
+                iframeElement.src = `images/metal_and_rare_earth_prices_${period}_${selectedDate}.html`;
                 
                 // 타임스탬프 업데이트
-                timestampElement.textContent = `${selectedDate} 00:00`;
+                timestampElement.textContent = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} 00:00`;
             });
         }
         
